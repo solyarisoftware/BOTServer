@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>BOTServer by solyaris</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">BOTServer</h1>
+      <h2 class="project-tagline">http://telegram.org Bot Platform webhooks server, for Rubyists</h2>
+      <a href="https://github.com/solyaris/BOTServer" class="btn">View on GitHub</a>
+      <a href="https://github.com/solyaris/BOTServer/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/solyaris/BOTServer/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="botserver" class="anchor" href="#botserver" aria-hidden="true"><span class="octicon octicon-link"></span></a>BOTServer</h1>
+
+<p><a href="http://Telegram.org">Telegram</a> Bot Platform webhooks server, for Rubyists.</p>
+
+<h2>
+<a id="telegram-bots-platform-" class="anchor" href="#telegram-bots-platform-" aria-hidden="true"><span class="octicon octicon-link"></span></a>Telegram Bots Platform ?</h2>
+
+<p>Please read offical documentation:</p>
+
+<ul>
+<li>
+<a href="https://telegram.org/blog/bot-revolution">Telegram Bot Platform Revolution!</a> </li>
+<li><a href="https://core.telegram.org/bots">Bots: An introduction for developers</a></li>
+<li><a href="https://core.telegram.org/bots/api">Telegram Bot API</a></li>
+</ul>
+
+<h2>
+<a id="why-" class="anchor" href="#why-" aria-hidden="true"><span class="octicon octicon-link"></span></a>Why ?</h2>
+
+<ul>
+<li><p>First goal: 
+set-up a Ruby way to manage Telegram Bot API 'getUpdates' via HTTPS webhooks, a performance improvement in comparison with HTTPS long polling. So let consider this as an appendix of <a href="https://github.com/atipugin/telegram-bot-ruby">telegram-bot-ruby</a> gem, Alexander Tipugin's excellent Telegram Bot APIs wrapper; to thank him for his work, I tried to solve issue #19: <a href="https://github.com/atipugin/telegram-bot-ruby/issues/19">setting up webhooks with telegram-bot-ruby ?</a>. BOTServer here is to close the open issue :)</p></li>
+<li><p>Second goal:
+receive https callbacks is probably more efficient than getting updates on a long polling connection, but the real need of webhooks is when you have many bots to manage at once. Let say <strong>dozen, hundreds of bots</strong>! In this scenario, it could pretty impossible to manage in a single host, so many long polling connections, because we have to maintain open too many HTTPS persistent connections for long polling mode. </p></li>
+</ul>
+
+<p>More details about long polling vs webhooks in wiki document: <a href="https://github.com/solyaris/BOTServer/blob/master/wiki/architectures.md">Telegram Bot Architecture(s)</a></p>
+
+<pre><code>      +----+
+      | device                 +---------+
+      |    |     +-------+     |      device                   +-----+
+      |    |     |    device   |         |                  device   |
+      +--+-+     |       |     |         |   +-------------+   |     |
+         |       +---+---+     +----+----+   |             |   |     |
+         |           |              |     device           |   +--+--+
+         |           |              |        +------+------+      |
+         |           |              |               |             |
++--------+-----------+--------------+---------------+-------------+------------------+
+| T E L E G R A M . O R G   N E T W O R K                                            |
++--+----------------------------------------+-----+-------------------------------+--+
+   | Telegram Bot Webhooks API              |     | Telegram Bot Long Polling API |
+   +-+-+-+---------------------------+-+-+--+     +--+------------+--+------+-+---+
+     v v v                           ^ ^ ^           v            v         ^ ^
+     | | | HTTPS webhooks            https           | many HTTPS |         | |
+  +--| | |--+                        | | |           | persistent |         | |
+  |  | | |  +---------------+        | | |           | conn.      |         | |
+  |  | | +--&gt; Bot 1         |--------+ | |           |            |         | |
+  |  | |    +---------------+          | |           v            v         ^ ^
+  |  | |    |                          | |           |            |         | |
+  |  | |    +---------------------+    | |           |            |         | |
+  |  | +----&gt; Bot 2               |----+ |     +-----v------+     |         | |
+  |  |      +---------------------+      |     | Bot 1      |---------------+ |
+  |  |      |                            |     +------------+     |           |
+  |  |      +--------+                   |                        |           |
+  |  +------&gt; Bot N  |-------------------+                        |           |
+  |         +--------+                                   +--------v-----+     |
+  |         |                                            | Bot N        |-----+
+  +---------+ Webhooks BOTServer                         +--------------+
+</code></pre>
+
+<h2>
+<a id="a-lot-of-bots-" class="anchor" href="#a-lot-of-bots-" aria-hidden="true"><span class="octicon octicon-link"></span></a>A lot of bots ?</h2>
+
+<p>You are maybe asking yourself, what the hell of application needs so many bots!? Let consider a sort of e-commerce marketplace, where your backend bot server must manage multiple bots, where each bot "represent" any shop, any service supplier, any merchant interface! 
+Confused ? I reported some examples of bots usage in humans-to-humans ineternedaition, see: <a href="https://github.com/solyaris/BOTServer/blob/master/wiki/services.md">Innovative Chatbot Services with Telegram</a>. By example consider a "Pizza maker in-store shop" scenario, where a buyer do an online order chatting with a virtula shop bot, that helps buyer filling order and sending order to seller! So, for this "marketplace" it make sense to manage a multitude of bots (1 bot = 1 shop) with an efficient server architecture. For this specific business reason I created BOTServer: a sort of <strong>webhooks handler microframework to serve "a lot of bots"</strong>.</p>
+
+<h3>
+<a id="nuts-and-bolts" class="anchor" href="#nuts-and-bolts" aria-hidden="true"><span class="octicon octicon-link"></span></a>Nuts and bolts</h3>
+
+<p>BOTServer provides some command line scripts to build the game. Just run <code>rake</code> from your project home: </p>
+
+<pre><code>$ rake
+rake app:new[token]        # create bot app template for given token
+rake certificate:new       # create certificate
+rake certificate:show      # show public certificate
+rake proxy:new             # show nginx proxy configuration for ssl
+rake rack:log              # show rack sever logfile: /your_home/BOTServer/log/thin.log
+rake rack:pid              # rack server pid
+rake rack:restart          # restart rack server
+rake rack:stop             # stop rack server
+rake server:check          # check server configuration: /your_home/BOTServer/config/server.yml
+rake server:show           # show server configuration: /your_home/BOTServer/config/server.yml
+rake tokens:check          # verify tokens, online querying Telegram Server
+rake tokens:show           # show tokens configuration file: /your_home/BOTServer/config/tokens.yml
+rake webhook:reset[token]  # Reset webhook for given token
+rake webhook:set[token]    # Set webhook for given token
+</code></pre>
+
+<p>In next paragraph I'll show you step by step, explaining all in detail what commands are for. </p>
+
+<p>BOTServer run-time engine is very simple: it's a <a href="https://github.com/rack/rack">rack</a> application (now implemented with <a href="http://www.sinatrarb.com/">Sinatra</a>, but I'll soon substitute it with flat <strong>fast</strong> rack app), that dispatch dinamically incoming token webhooks, calling update method of an instance of a pregenerated class, that define the bot. So, yes, I used a bit Ruby on Rails metaprogramming paradigma for the game. Here below the dispatcher (<code>rackup/sinatra.rb</code>) code extract:</p>
+
+<div class="highlight highlight-source-ruby"><pre><span class="pl-c"># load bots in memory. return a lookup table</span>
+set <span class="pl-c1">lookup:</span> <span class="pl-c1">Loader</span>.create_lookup(<span class="pl-c1">Config</span>.tokens_config_file)
+
+<span class="pl-c"># HTTPS POST webhook endpoint(s)</span>
+post <span class="pl-s"><span class="pl-pds">'</span>/:token<span class="pl-pds">'</span></span> <span class="pl-k">do </span>| <span class="pl-smi">token</span> |
+
+  <span class="pl-c"># retrieve name, method object pair from lookup table</span>
+  bot <span class="pl-k">=</span> settings.lookup[token.to_sym]
+
+  <span class="pl-k">unless</span> bot.nil?
+    request.body.rewind
+    body <span class="pl-k">=</span> request.body.read
+    data <span class="pl-k">=</span> <span class="pl-c1">MultiJson</span>.load(body)
+    update <span class="pl-k">=</span> <span class="pl-c1">Telegram</span>::<span class="pl-c1">Bot</span>::<span class="pl-c1">Types</span>::<span class="pl-c1">Update</span>.<span class="pl-k">new</span>(data)
+
+    <span class="pl-c"># TRICKY:  object method run-time execution</span>
+    bot[<span class="pl-c1">:method</span>].call(update)
+  <span class="pl-k">end</span>
+<span class="pl-k">end</span></pre></div>
+
+<h2>
+<a id="assembly-instructions-in-7-steps" class="anchor" href="#assembly-instructions-in-7-steps" aria-hidden="true"><span class="octicon octicon-link"></span></a>Assembly instructions in 7 steps</h2>
+
+<p>BOTServer is nothing else than a sequential devops tasks and a runt-time webhooks dispatcher. I list here and I'll explain in deep in next paragraps: </p>
+
+<ol>
+<li>Install a web/proxy server, Ruby project stuff</li>
+<li>Create (self-signed) Certificate</li>
+<li>Get your Telegram Bot token(s)</li>
+<li>Set-up configuration files</li>
+<li>Set "Webhooks mode" for each token </li>
+<li>Generate template for each bot</li>
+<li>Deploy and run BOTServer</li>
+</ol>
+
+<h3>
+<a id="step-1-installation" class="anchor" href="#step-1-installation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Step 1. Installation</h3>
+
+<h4>
+<a id="install-your-preferred-proxy-server" class="anchor" href="#install-your-preferred-proxy-server" aria-hidden="true"><span class="octicon octicon-link"></span></a>Install your preferred proxy-server</h4>
+
+<p>This is a pro-Soviet project (I'm joking) and we love Igor Sysoev's <a href="http://nginx.org/">NGINX</a> web server creature!:-). Jokes a part, using a front end server is not mandatory. By example my preferred rack server, <a href="http://code.macournoyer.com/thin/">Thin</a> is able to manage HTTPS and certificates, but there is a security concern here: when receiving webhooks, you expose your own server to possible attacks, and it's better to do not expose to crazy internet your preferred Ruby rack server (Thin, Puma, whatever).</p>
+
+<p>NGINX is a great fast and robust front-end firewall and load balancer. Last but not least, NGINX know how to manage SSL certificates and all digital certificates' cross-validations. </p>
+
+<p>NGINX installation depends on your OS. Please refer to NGINX website for download and installation info. </p>
+
+<p>See architectural overview here behind: NGINX act as a SSL manager, proxy and load balancer in front of one or many rack servers (workers).</p>
+
+<pre><code>+-----------------------------------------------------------------------------------+
+| TELEGRAM NETWORK                                                                  |
++-----------------------------------------------------------------------------------+
+   v v v v                                                                   ^ ^ ^
+   | | | |    NGINX                                                          | | |
+   | | | |    SSL/HTTPS                                                      | | | 
+   | | | |    front-end/balancer                                             | | |
+   | | | |    +------+            Hooks Rack Server (Thin worker 1)          | | |
+   | | | |    |      |            +------+                                   | | |
+   | | | | w  |      |            |      |     +---------------+ HTTPS send  | | |
+   | | | | e  |      |            |      ------&gt; App 1         |-------------+ | |
+   | | | | b  |      |            |      |     +---------------+               | |
+   | | | | h  |      |            |      |                                     | |
+   | | | | o  |      |            |      |     +---------------+ HTTPS send    | |
+   | | | | o  |      ------------&gt;| W1   -------&gt; App 2        |---------------+ |
+   | | | | k  |      |            |      |     +---------------+                 |
+   | | | | s  |      |            |      |                                       |
+   | | | +---&gt;|      |            |      |     +---------------+  HTTPS send     |    
+   | | +-----&gt;|      |            |      ------&gt; App N         |-----------------+
+   | +-------&gt;|      |            |      |     +---------------+
+   |     ----&gt;|      |            +------+
+   |     ----&gt;|      |        
+   |     ----&gt;|      ------------&gt; W2
+   |     ----&gt;|      ------------&gt; W3
+   |     ----&gt;|      ------------&gt; W4
+   |     ----&gt;|      |        
+   |     ----&gt;|      |             Hooks Rack Server (Thin worker 5)  
+   +---------&gt;|      |            +------+
+              |      |            |      |                     
+              |      |            |      ------&gt;               
+              |      ------------&gt;|W5    ------&gt;                
+              |      |            |      ------&gt;               
+              |      |            +------+
+              +------+     
+</code></pre>
+
+<p>BTW, to configure Thin workers behind NGINX, see old interesting Marc-André Cournoyer's (Thin creator) post:<a href="https://macournoyer.wordpress.com/2008/01/26/get-intimate-with-your-load-balancer-tonight/">Get intimate with your load balancer tonight!</a> </p>
+
+<h4>
+<a id="install-this-project-code-and-bundle-all-ruby-stuff" class="anchor" href="#install-this-project-code-and-bundle-all-ruby-stuff" aria-hidden="true"><span class="octicon octicon-link"></span></a>Install this project code and bundle all Ruby stuff</h4>
+
+<div class="highlight highlight-source-shell"><pre>$ git clone https://github.com/solyaris/BOTServer.git
+$ <span class="pl-c1">cd</span> BOTServer <span class="pl-k">&amp;&amp;</span> bundle install</pre></div>
+
+<h3>
+<a id="step-2-create-self-signed-certificate" class="anchor" href="#step-2-create-self-signed-certificate" aria-hidden="true"><span class="octicon octicon-link"></span></a>Step 2. Create (self-signed) Certificate</h3>
+
+<p>I prepared a rake command to just show on command line terminal an openssl command to build-up secret an publick key. Please copy/paste to generate your self-signed certificate, modifying the shown command with your personal data:</p>
+
+<div class="highlight highlight-source-shell"><pre>$ rake certificate:new</pre></div>
+
+<h3>
+<a id="step-3-get-your-telegram-bot-tokens" class="anchor" href="#step-3-get-your-telegram-bot-tokens" aria-hidden="true"><span class="octicon octicon-link"></span></a>Step 3. Get your Telegram Bot token(s)</h3>
+
+<p>You have to chat with <a href="https://core.telegram.org/bots#botfather">Telegram Bot Father</a>, to create each of your bot!
+Afterward, take your secret tokens on your secret files.</p>
+
+<h3>
+<a id="step-4-set-up-configuration-files" class="anchor" href="#step-4-set-up-configuration-files" aria-hidden="true"><span class="octicon octicon-link"></span></a>Step 4. Set-up configuration files</h3>
+
+<p>Configure and check tokens.yml and server.yml</p>
+
+<div class="highlight highlight-source-shell"><pre>$ vi config/tokens.yml
+$ rake tokens:check
+$ vi config/server.yml
+$ rake server:check</pre></div>
+
+<h4>
+<a id="serveryml-example" class="anchor" href="#serveryml-example" aria-hidden="true"><span class="octicon octicon-link"></span></a>server.yml example</h4>
+
+<div class="highlight highlight-source-yaml"><pre><span class="pl-c1"><span class="pl-ent">host: your_domain.com port:</span> 8443</span>
+
+<span class="pl-s"><span class="pl-ent">certificate_file_key:</span> <span class="pl-s">ssl/PRIVATE.key</span></span>
+<span class="pl-s"><span class="pl-ent">certificate_file_pem:</span> <span class="pl-s">ssl/PUBLIC.pem</span></span></pre></div>
+
+<h4>
+<a id="tokensyml-example" class="anchor" href="#tokensyml-example" aria-hidden="true"><span class="octicon octicon-link"></span></a>tokens.yml example</h4>
+
+<div class="highlight highlight-source-yaml"><pre><span class="pl-s">- <span class="pl-ent">token:</span> <span class="pl-s">070743004:yuSJJdB5L354Zq41iGIggSdYGJ1IhVh8XSA</span></span>
+  <span class="pl-s"><span class="pl-ent">description:</span> <span class="pl-s">Il negozio della memoria dimenticata</span></span>
+
+<span class="pl-s">- <span class="pl-ent">token:</span> <span class="pl-s">998001334:zAFo4dBdd3ZZtqgKiGdPqkkYGJ1ppVW8pUZ</span></span>
+  <span class="pl-s"><span class="pl-ent">description:</span> <span class="pl-s">Dolcetto o Scherzetto? </span></span>
+
+<span class="pl-s">- <span class="pl-ent">token:</span> <span class="pl-s">007863333:NNkdudnNhdhGGo775SjYTurr45hh00W99AB</span></span>
+  <span class="pl-s"><span class="pl-ent">description:</span> <span class="pl-s">Rosticceria Sacco, la migliore di Genova</span></span>
+
+<span class="pl-s">- <span class="pl-ent">token:</span> <span class="pl-s">565000782:KKKKsssNsshsjHT75SjYTu56klsh00W99AB</span></span>
+  <span class="pl-s"><span class="pl-ent">description:</span> <span class="pl-s">Franco Califfano Fruttivendolo</span></span>
+
+<span class="pl-s">- <span class="pl-ent">token:</span> <span class="pl-s">127652228:JjfssGj7GSlSH0075SjYTu5jj845ssWKXXZ</span></span>
+  <span class="pl-s"><span class="pl-ent">description:</span> <span class="pl-s">Spaghetteria Nadia Parodi </span></span></pre></div>
+
+<h4>
+<a id="configure-nginx-to-manage-your-digital-certificate" class="anchor" href="#configure-nginx-to-manage-your-digital-certificate" aria-hidden="true"><span class="octicon octicon-link"></span></a>configure NGINX to manage your digital certificate</h4>
+
+<p>To show nginx proxy configuration for ssl, you can generate a template configuration.
+Afterward copy/paste/modify and update your NGINX configuration file.</p>
+
+<div class="highlight highlight-source-shell"><pre>rake proxy:new</pre></div>
+
+<h3>
+<a id="step-5-set-webhooks" class="anchor" href="#step-5-set-webhooks" aria-hidden="true"><span class="octicon octicon-link"></span></a>Step 5. Set Webhooks</h3>
+
+<p>Set webhook for each token</p>
+
+<div class="highlight highlight-source-shell"><pre>$ rake webhook:<span class="pl-c1">set</span>[YOUR_TOKEN_1]
+$ rake webhook:<span class="pl-c1">set</span>[YOUR_TOKEN_2]
+$ rake webhook:<span class="pl-c1">set</span>[YOUR_TOKEN_3]
+$ rake webhook:<span class="pl-c1">set</span>[YOUR_TOKEN_N]</pre></div>
+
+<p>BTW, if you want to reset a webhook, to go back with long polling (EXCLUSIVE) mode, for example for bot associated with token YOUR_TOKEN_N, just run command: </p>
+
+<div class="highlight highlight-source-shell"><pre>$ rake webhook:reset[YOUR_TOKEN_N]</pre></div>
+
+<h3>
+<a id="step-6-generate-template-for-each-of-your-application-bots" class="anchor" href="#step-6-generate-template-for-each-of-your-application-bots" aria-hidden="true"><span class="octicon octicon-link"></span></a>Step 6. Generate template for each of your application bots</h3>
+
+<p>create bot app template for each token:</p>
+
+<div class="highlight highlight-source-shell"><pre>$ rake app:new[YOUR_TOKEN_1]
+$ rake app:new[YOUR_TOKEN_2]
+$ rake app:new[YOUR_TOKEN_3]
+$ rake app:new[YOUR_TOKEN_4]</pre></div>
+
+<p>My idea here, is to generate an app template, to be filled with your own logic. The generated app implement just an echo-server trivial logic. Of course you have to link-up here, in the update method your real bot LOGIC!</p>
+
+<div class="highlight highlight-source-ruby"><pre><span class="pl-c">#</span>
+<span class="pl-c"># file: yourappexample.rb </span>
+<span class="pl-c">#</span>
+<span class="pl-k">require</span> <span class="pl-s"><span class="pl-pds">'</span>telegram/bot<span class="pl-pds">'</span></span>
+
+<span class="pl-k">class</span> <span class="pl-en">Yourappexamplebot</span> 
+  <span class="pl-k">attr_reader</span> <span class="pl-c1">:token</span>, <span class="pl-c1">:client</span>
+
+  <span class="pl-k">def</span> <span class="pl-en">initialize</span>
+    <span class="pl-smi">@token</span> <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">'</span>YOUR_APP_EXAMPLE_TOKEN<span class="pl-pds">'</span></span>
+    <span class="pl-smi">@client</span> <span class="pl-k">=</span> <span class="pl-c1">Telegram</span>::<span class="pl-c1">Bot</span>::<span class="pl-c1">Client</span>.<span class="pl-k">new</span>(<span class="pl-smi">@token</span>)
+  <span class="pl-k">end</span>
+
+  <span class="pl-c">#</span>
+  <span class="pl-c"># message(s) updates from telegram server.</span>
+  <span class="pl-c"># put ALL your Telegram Bot logic here.</span>
+  <span class="pl-c">#</span>
+  <span class="pl-k">def</span> <span class="pl-en">update</span>(<span class="pl-smi">data</span>)
+    update_id <span class="pl-k">=</span> data.update_id
+    message <span class="pl-k">=</span> data.message
+    message_id <span class="pl-k">=</span> message.message_id 
+
+    <span class="pl-c">#</span>
+    <span class="pl-c"># #######################</span>
+    <span class="pl-c"># PUT HERE YOUR BOT LOGIC</span>
+    <span class="pl-c"># #######################</span>
+    <span class="pl-c">#    </span>
+
+    <span class="pl-c"># echo-server, just for test purpose</span>
+    <span class="pl-k">case</span> message.text
+    <span class="pl-k">when</span> <span class="pl-sr"><span class="pl-pds">/</span>.+<span class="pl-pds">/</span></span> 
+      text <span class="pl-k">=</span> <span class="pl-s"><span class="pl-pds">"</span><span class="pl-pse">#{</span><span class="pl-s1">message.from.first_name</span><span class="pl-pse"><span class="pl-s1">}</span></span>:<span class="pl-pse">#{</span><span class="pl-s1">message.text</span><span class="pl-pse"><span class="pl-s1">}</span></span><span class="pl-pds">"</span></span>
+      chat_id <span class="pl-k">=</span> message.chat.id
+
+      <span class="pl-c"># send echo to user </span>
+      client.api.send_message(<span class="pl-c1">chat_id:</span> chat_id, <span class="pl-c1">text:</span> text)
+      puts <span class="pl-s"><span class="pl-pds">"</span><span class="pl-pse">#{</span><span class="pl-s1">update_id</span><span class="pl-pse"><span class="pl-s1">}</span></span>:<span class="pl-pse">#{</span><span class="pl-s1">message_id</span><span class="pl-pse"><span class="pl-s1">}</span></span>:<span class="pl-pse">#{</span><span class="pl-s1">text</span><span class="pl-pse"><span class="pl-s1">}</span></span><span class="pl-pds">"</span></span>
+    <span class="pl-k">end</span>  
+  <span class="pl-k">end</span>
+
+
+  <span class="pl-k">alias</span> get_update update
+<span class="pl-k">end</span></pre></div>
+
+<h3>
+<a id="step-7-deploy-and-run" class="anchor" href="#step-7-deploy-and-run" aria-hidden="true"><span class="octicon octicon-link"></span></a>Step 7. Deploy and Run</h3>
+
+<ul>
+<li>Start web server</li>
+<li>Start rack server</li>
+<li>Monit incoming webhooks</li>
+</ul>
+
+<div class="highlight highlight-source-shell"><pre>$ service nginx restart
+$ rake rack:restart
+$ rake rack:log</pre></div>
+
+<h2>
+<a id="wiki" class="anchor" href="#wiki" aria-hidden="true"><span class="octicon octicon-link"></span></a>Wiki</h2>
+
+<ul>
+<li>Long polling vs webhooks 
+<a href="https://github.com/solyaris/BOTServer/blob/master/wiki/architectures.md">Telegram Bot: Long polling vs Webhooks</a>
+</li>
+<li>Telegram networks concepts and services
+p2p chats, groups, channels and ideas about some "innovative" Telegram-based SERVICES, integrating humans an chatbots (machine learning enabled software creatures): <a href="https://github.com/solyaris/BOTServer/blob/master/wiki/services.md">Innovative Chatbot Services with Telegram</a>. Very draft doc.</li>
+</ul>
+
+<h2>
+<a id="to-do" class="anchor" href="#to-do" aria-hidden="true"><span class="octicon octicon-link"></span></a>To do</h2>
+
+<ol>
+<li>Substitute the Sinatra rack handler with pure rack implementation</li>
+<li>Add Puma as rack server</li>
+<li>Update server.yml after cerrtificate generation</li>
+<li>Make a BOTServer gem </li>
+<li>Possibly separate the handler kernel from any Telegram bot logic</li>
+</ol>
+
+<h2>
+<a id="release-notes" class="anchor" href="#release-notes" aria-hidden="true"><span class="octicon octicon-link"></span></a>Release notes</h2>
+
+<h3>
+<a id="v001" class="anchor" href="#v001" aria-hidden="true"><span class="octicon octicon-link"></span></a>v.0.0.1</h3>
+
+<p>First release: 28 November 2015</p>
+
+<h2>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span class="octicon octicon-link"></span></a>License</h2>
+
+<p>BOTServer is released under the <a href="http://www.opensource.org/licenses/mit-license">MIT License</a>.</p>
+
+<h2>
+<a id="thanks-to" class="anchor" href="#thanks-to" aria-hidden="true"><span class="octicon octicon-link"></span></a>Thanks to</h2>
+
+<ul>
+<li>Alexander Tipugin for <a href="https://github.com/atipugin/telegram-bot-ruby">telegram-bot-ruby</a> gem and time in e-mail converstaions.</li>
+<li>Paolo Montrasio <a href="http://www.connettiva.eu/index-en.html">connettiva.eu</a> for his insistence to use NGINX. stop :-)</li>
+<li>Marc-André Cournoyer's for <a href="http://code.macournoyer.com/thin/">Thin</a> rack server.</li>
+</ul>
+
+<h2>
+<a id="contacts" class="anchor" href="#contacts" aria-hidden="true"><span class="octicon octicon-link"></span></a>Contacts</h2>
+
+<ul>
+<li>
+<strong>If you feel useful this work, please star the project :-)</strong>
+Please feel free to open an issue here in github, just to share suggestions/notes and of course bugs (I'm specilized on making them!). Maybe you can put in the issue title a keyword like: [note], [thanks], [bug], [feature request], [issue], etc. Any comment or criticis are anyway welcome.</li>
+<li>blog: <a href="http://www.twitter.com/solyarisoftware">@solyarisoftware</a>, I share here my thoughts about Ruby language, instant messaging, chat bots, natural language processing, mobile e-payment and e-commerce systems, politcs and socioeconomic nightmares, in Italy.</li>
+<li>mail: <a href="mailto:giorgio.robino@gmail.com">giorgio.robino@gmail.com</a>
+</li>
+</ul>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/solyaris/BOTServer">BOTServer</a> is maintained by <a href="https://github.com/solyaris">solyaris</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
