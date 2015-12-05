@@ -7,11 +7,9 @@ gem 'colorizer'
 gem 'oj'
 gem 'multi_json'
 
-# fast event machine web server
+# fast event machine rack server
 gem 'thin'
-
-# simple (but not the fastest) Ruby microframework
-gem 'sinatra'
+gem 'rack'
 
 # Telegram Bot API for Rubysts
 gem 'telegram-bot-ruby'
