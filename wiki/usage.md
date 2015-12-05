@@ -8,6 +8,9 @@ rake app:new[token]        # Create bot app template for given token
 rake certificate:new       # Create SSL certificate
 rake certificate:show      # Show public certificate
 rake proxy:config:new      # Generate nginx proxy SSL configuration from server.yml data
+rake proxy:restart         # Restart proxy server
+rake proxy:start           # Start proxy server
+rake proxy:stop            # Stop proxy server
 rake server:config:show    # Show server configuration: /home/solyaris/BOTServer/config/server.yml
 rake server:config:test    # Check server configuration: /home/solyaris/BOTServer/config/server.yml
 rake server:log            # Tail -f rack sever logfile: /home/solyaris/BOTServer/log/thin.log

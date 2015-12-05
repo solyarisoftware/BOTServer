@@ -31,7 +31,7 @@ There are at least three Telegram Bot Ruby clients (as far as I know), here list
 
   > Receiving HTTPS webhooks callbacks is probably more efficient than getting updates on a long polling connection, but the real need of webhooks is when you have **dozen, hundreds of bots to manage at once with your server**. In this scenario, it could pretty impossible to manage in a single host, using long polling connections, because the need to maintain open too many Ruby processes/ HTTPS (persistent) connections. 
 
-  ** *BOTServer* is a toolkit to test and deploy Bot tokens to receive webhooks with a very simple dynamic routing server: a rack server that dispatch dinamically incoming token webhooks, calling update method of an instance of a class generated with a template sckeleton, that define the bot. Details: [Telegram Bot Architecture(s)](https://github.com/solyaris/BOTServer/blob/master/wiki/architectures.md)**
+  ** _BOTServer_ is a toolkit to test and deploy Bot tokens to receive webhooks with a very simple dynamic routing server: a rack server that dispatch dinamically incoming token webhooks, calling update method of an instance of a class generated with a template sckeleton, that define the bot. Details: [Telegram Bot Architecture(s)](https://github.com/solyaris/BOTServer/blob/master/wiki/architectures.md)**
 
 ```
   TELEGRAM Bot API Server                         
@@ -78,11 +78,16 @@ Here assembly instruction steps:
 Keep calm and see: [Assembly instructions in 7 steps](https://github.com/solyaris/BOTServer/blob/master/wiki/usage.md)
 
 After installation of the project, just run `rake` from your project home: 
+
 ```
+$ rake
 rake app:new[token]        # Create bot app template for given token
 rake certificate:new       # Create SSL certificate
 rake certificate:show      # Show public certificate
 rake proxy:config:new      # Generate nginx proxy SSL configuration from server.yml data
+rake proxy:restart         # Restart proxy server
+rake proxy:start           # Start proxy server
+rake proxy:stop            # Stop proxy server
 rake server:config:show    # Show server configuration: /home/solyaris/BOTServer/config/server.yml
 rake server:config:test    # Check server configuration: /home/solyaris/BOTServer/config/server.yml
 rake server:log            # Tail -f rack sever logfile: /home/solyaris/BOTServer/log/thin.log
