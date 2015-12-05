@@ -1,0 +1,26 @@
+#############
+# tokens.yml
+#############
+
+#
+# This file is just an example/YAML template:
+# modify this file inserting your valid tokens!
+#
+# you can optionally insert a descrition text attribute
+# please note this is not the Telegram bot description
+# 
+- token: 070743004:yuSJJdB5L354Zq41iGIggSdYGJ1IhVh8XSA
+  description: Il negozio della memoria dimenticata
+  
+- token: 998001334:zAFo4dBdd3ZZtqgKiGdPqkkYGJ1ppVW8pUZ
+  description: Dolcetto o Scherzetto?  
+  
+- token: 007863333:NNkdudnNhdhGGo775SjYTurr45hh00W99AB
+  description: Rosticceria Sacco, la migliore di Genova
+  
+- token: 565000782:KKKKsssNsshsjHT75SjYTu56klsh00W99AB
+  description: Franco Califfano Fruttivendolo
+  
+- token: 127652228:JjfssGj7GSlSH0075SjYTu5jj845ssWKXXZ
+  description: Spaghetteria Nadia Parodi 
+  

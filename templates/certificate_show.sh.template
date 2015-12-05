@@ -1,0 +1,1 @@
+openssl x509 -text -noout -in %{file_name_pem}

@@ -1,0 +1,3 @@
+
+service nginx %{action}
+

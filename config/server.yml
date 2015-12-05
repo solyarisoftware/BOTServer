@@ -1,0 +1,26 @@
+#############
+# server.yml
+#############
+
+#
+# your public host ( htpps://your_domain.com:port/ ) 
+#
+
+# domain
+host: your_domain.com 
+
+# allowed port for HTTPS
+port: 8443
+
+#
+# your SSL certificates, 
+# possibly made with BOTServer utility command:
+#
+#   $ rake certificate:new
+#
+
+# private key file
+certificate_file_key: ssl/PRIVATE.key
+
+# public certificate file  
+certificate_file_pem: ssl/PUBLIC.pem

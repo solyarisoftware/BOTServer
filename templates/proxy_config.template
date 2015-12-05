@@ -1,0 +1,29 @@
+upstream backend {
+  server 127.0.0.1:3000;
+}
+
+#
+# HTTPS server
+#
+server {
+  listen %{port} ssl;
+  server_name %{host};
+
+  ssl on;
+  ssl_certificate %{certificate_file_pem};
+  ssl_certificate_key %{certificate_file_key};
+
+  ssl_session_timeout 5m;
+
+  ssl_protocols SSLv3 TLSv1 TLSv1.1 TLSv1.2;
+  ssl_ciphers "HIGH:!aNULL:!MD5 or HIGH:!aNULL:!MD5:!3DES";
+  ssl_prefer_server_ciphers on;
+
+  location @backend {
+    proxy_pass http://backend;
+  }
+
+  location / {
+    try_files $uri @backend;
+  }
+}

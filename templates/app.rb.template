@@ -1,0 +1,45 @@
+#
+# file: %{file_name} 
+#
+require 'telegram/bot'
+
+class %{class_name} 
+  attr_reader :token, :client
+
+  def initialize
+    @token = '%{token}'
+    @client = Telegram::Bot::Client.new(@token)
+  end
+
+  #
+  # message(s) updates from telegram server.
+  # put ALL your Telegram Bot logic here.
+  #
+  def update(data)
+    # instantiate a client update object 
+    update = Telegram::Bot::Types::Update.new(data)
+
+    update_id = update.update_id
+    message = update.message
+    message_id = message.message_id 
+    
+    # ####################################
+    # PUT HERE BELOW YOUR UPDATE BOT LOGIC
+    # ####################################
+
+    # echo-server, just for test purpose
+    case message.text
+    when /.+/ 
+      text = "#{message.from.first_name}:#{message.text}"
+      chat_id = message.chat.id
+
+      # send echo tu user 
+      client.api.send_message(chat_id: chat_id, text: text)
+      puts "#{self.class.name}:#{text}"
+    end
+
+    # ####################################
+    # PUT HERE ABOVE YOUR UPDATE BOT LOGIC
+    # ####################################
+  end
+end
