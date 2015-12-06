@@ -1,11 +1,11 @@
 # BOTServer 
 
-[Telegram](http://Telegram.org) Bot API Webhooks Framework, for Rubyists.
-_BOTServer_ configures, tests and deploys bots, with a fast rack server.
+[Telegram](http://Telegram.org) Bot API Webhooks Framework, for Rubyists.<br>
+_BOTServer_ configures, tests and deploys bots, running a fast rack server for webhooks routing.
 
 ![](https://github.com/solyaris/BOTServer/blob/master/wiki/BOTServer.png)
 
-## [Telegram Bots Platform Archiectures ?](https://github.com/solyaris/BOTServer/blob/master/wiki/architectures.md)
+## [Telegram Bots Platform Architectures ?](https://github.com/solyaris/BOTServer/blob/master/wiki/architectures.md)
 
 Details about Telegram Bot API long polling vs webhooks: [Telegram Bot Platform](https://github.com/solyaris/BOTServer/blob/master/wiki/architectures.md)
 
@@ -67,15 +67,15 @@ _BOTServer_ is a devops utility to:
 
 Here assembly instruction steps: 
 
-1. Installation (web/proxy server, Ruby project code)
-2. Get Telegram Bot token(s)
-3. Update configuration files
-4. Create (self-signed) Certificate
-5. Configure "Webhooks mode" for each token
-6. Generate template for each bot
-7. Deploy and run _BOTServer_
+1. [Installation (web/proxy server, Ruby project code)](https://github.com/solyaris/BOTServer/blob/master/wiki/usage.md#step-1-installation)
+2. [Get Telegram Bot token(s)](https://github.com/solyaris/BOTServer/blob/master/wiki/usage.md#step-2-get-your-telegram-bot-tokens)
+3. [Update configuration files](https://github.com/solyaris/BOTServer/blob/master/wiki/usage.md#step-3-set-up-configuration-files)
+4. [Create (self-signed) Certificate](https://github.com/solyaris/BOTServer/blob/master/wiki/usage.md#step-4-create-self-signed-certificate)
+5. [Configure "Webhooks mode" for each token](https://github.com/solyaris/BOTServer/blob/master/wiki/usage.md#step-5-set-webhooks)
+6. [Generate template for each bot](https://github.com/solyaris/BOTServer/blob/master/wiki/usage.md#step-6-generate-template-for-each-of-your-application-bots)
+7. [Deploy and run _BOTServer](https://github.com/solyaris/BOTServer/blob/master/wiki/usage.md#step-7-deploy-and-run)
 
-Keep calm and see: [Assembly instructions in 7 steps](https://github.com/solyaris/BOTServer/blob/master/wiki/usage.md)
+Keep calm and follow step by step instrctions: [Assembly instructions in 7 steps](https://github.com/solyaris/BOTServer/blob/master/wiki/usage.md)
 
 After installation of the project, just run `rake` from your project home: 
 
@@ -101,12 +101,18 @@ rake webhook:reset[token]  # Reset webhook for a given token
 rake webhook:set[token]    # Set webhook for a given token
 ```
 
-## Wiki/documentation
+## Documentation / wiki
 
 * [Long polling vs webhooks Architectures](https://github.com/solyaris/BOTServer/blob/master/wiki/architectures.md)
 * [Assembly instructions in 7 steps](https://github.com/solyaris/BOTServer/blob/master/wiki/usage.md)
 * [Why and How to install and set-up NGINX](https://github.com/solyaris/BOTServer/blob/master/wiki/nginx.md)
 * [Innovative Chatbot Services with Telegram](https://github.com/solyaris/BOTServer/blob/master/wiki/services.md)
+
+
+## My Articles (in Italian)
+
+* [Telegram vs WhatsApp: Una ben differente visione di futuri servizi P2P](https://gist.github.com/solyaris/a37ddc3d23b870550d66)
+
 
 ## [To do/Releases](https://github.com/solyaris/BOTServer/blob/master/wiki/changelog.md)
 
