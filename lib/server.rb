@@ -47,6 +47,7 @@ module Server
   end
 
   def self.certificate_file_key
+    return nil if @@certificate_file_pem.nil?
     File.expand_path(@@certificate_file_key) # file name, string
   end
 
