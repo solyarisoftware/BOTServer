@@ -42,10 +42,12 @@ module Server
   end  
 
   def self.certificate_file_pem
+    return nil if @@certificate_file_pem.nil?
     File.expand_path(@@certificate_file_pem) # file name, string
   end
 
   def self.certificate_file_key
+    return nil if @@certificate_file_pem.nil?
     File.expand_path(@@certificate_file_key) # file name, string
   end
 
@@ -135,8 +137,8 @@ module Server
   #
   def self.validates_certificate(certificate_file_name, verbose: true)
     if certificate_file_name.nil?
-      $stderr.puts "ERROR. #{certificate_file_name} certificate variable unset.".red
-      exit
+      $stderr.puts "WARNING! #{certificate_file_name} certificate variable unset.".yellow
+      return
     end  
 
     # get file handler

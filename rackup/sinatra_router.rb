@@ -41,7 +41,7 @@ post '/:token' do | token |
     bot[:method].call data 
 
     # WARNING: # it's better to do not write/log tokens in clear on a log files
-    puts "#{time_now}\t#{bot[:name]}\t#{data['update_id']}\t#{data['message']['message_id']}".green
+    puts "#{time_now}\t#{bot[:name]}\t#{data['update_id']}".green #{data['message']['message_id']}
     status 200
   else
     # WARNING: token not found in look-up table!
