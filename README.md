@@ -108,12 +108,6 @@ rake webhook:set[token]    # Set webhook for a given token
 * [Why and How to install and set-up NGINX](https://github.com/solyaris/BOTServer/blob/master/wiki/nginx.md)
 * [Innovative Chatbot Services with Telegram](https://github.com/solyaris/BOTServer/blob/master/wiki/services.md)
 
-
-## My Articles (in Italian)
-
-* [Telegram vs WhatsApp: Una ben differente visione di futuri servizi P2P](https://gist.github.com/solyaris/a37ddc3d23b870550d66)
-
-
 ## [To do/Releases](https://github.com/solyaris/BOTServer/blob/master/wiki/changelog.md)
 
 ## [License](http://www.opensource.org/licenses/mit-license)
