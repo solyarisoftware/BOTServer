@@ -43,7 +43,7 @@ module Webhook
       certificate = nil
     else
       puts "certificate file: #{certificate_file}".yellow
-      certificate = File.open(File.expand_path(certificate_file))
+      certificate = Faraday::UploadIO.new(File.expand_path(certificate_file), 'application/x-pem-file')
     end  
     resp = client.api.set_webhook(url: url_webhook, certificate: certificate)
 
